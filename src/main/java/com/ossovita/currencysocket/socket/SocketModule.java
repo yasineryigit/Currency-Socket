@@ -1,5 +1,6 @@
 package com.ossovita.currencysocket.socket;
 
+import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
@@ -18,25 +19,28 @@ public class SocketModule {
     private final SocketIOServer socketIOServer;
     private final EventProducer eventProducer;
     private final ScheduledExecutorService scheduler;
+    private final Runnable runnable;
 
     public SocketModule(SocketIOServer socketIOServer, EventProducer eventProducer) {
         this.socketIOServer = socketIOServer;
         this.eventProducer = eventProducer;
         scheduler = Executors.newScheduledThreadPool(1);
+
+        runnable = () -> {//define runnable functional interface implementation method
+            for (SocketIOClient client : socketIOServer.getAllClients()) {
+                eventProducer.sendEventToTheClient(client);//send related events to each client that connected to our server
+            }
+        };
+
+        scheduler.scheduleAtFixedRate(runnable, 0, 3, TimeUnit.SECONDS);
+
         socketIOServer.addConnectListener(onConnected());
         socketIOServer.addDisconnectListener(onDisconnected());
-
     }
 
     private ConnectListener onConnected() {
         return client -> {
-
-            Runnable runnable = () -> eventProducer.sendEventToTheClient(client);
-
-            scheduler.scheduleAtFixedRate(runnable, 0, 3, TimeUnit.SECONDS);
-
             log.info(String.format("SocketID: %s connected", client.getSessionId().toString()));
-
         };
     }
 
@@ -48,3 +52,6 @@ public class SocketModule {
 
 
 }
+
+
+

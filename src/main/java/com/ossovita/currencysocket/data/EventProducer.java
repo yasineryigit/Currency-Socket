@@ -19,7 +19,7 @@ public class EventProducer {
     public void sendEventToTheClient(SocketIOClient client) {
         String symbol = client.getHandshakeData().getSingleUrlParam("symbol");
 
-        client.joinRoom(symbol);//attend client to the room belongs to the symbol (e.g: USDTRY)
+        client.joinRoom(symbol);//attend client to the room belongs to the symbol (e.g: USD)
 
         List<Currency> currencyList = dataScraper.getDataFromWebsite();
 
@@ -38,6 +38,7 @@ public class EventProducer {
             }else{
                 client.getNamespace().getRoomOperations(symbol)
                         .sendEvent("response", "Invalid symbol", client.getSessionId(), symbol);
+                client.disconnect();
             }
 
         }
