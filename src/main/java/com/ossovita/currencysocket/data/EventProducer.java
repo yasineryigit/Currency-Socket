@@ -10,18 +10,11 @@ import java.util.Optional;
 @Service
 public class EventProducer {
 
-    private final DataScraper dataScraper;
 
-    public EventProducer(DataScraper dataScraper) {
-        this.dataScraper = dataScraper;
-    }
-
-    public void sendEventToTheClient(SocketIOClient client) {
+    public void sendEventToTheClient(SocketIOClient client, List<Currency> currencyList) {
         String symbol = client.getHandshakeData().getSingleUrlParam("symbol");
 
         client.joinRoom(symbol);//attend client to the room belongs to the symbol (e.g: USD)
-
-        List<Currency> currencyList = dataScraper.getDataFromWebsite();
 
         if (symbol.equals("ALL")) {
             client.getNamespace().getRoomOperations(symbol)
